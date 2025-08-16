@@ -10,12 +10,12 @@ const app = express();
 app.use(express.json());
 app.use(cors());
 
-const JWT_SECRET = "cf94912ecdf1565e905ef12ebe0159519fc5de4c2d225560114a965b59734b2fc430d26a10ef3fb3252838b96462a8e2e578c7f8c5720a6d73fb6a8f80c638e6"; // ⚠️ Move to .env in production
+const JWT_SECRET = process.env.JWT_SECRET || "fallback_secret_key"; // ⚠️ Use .env in production
 
-// Middleware: Auth
+// ------------------- Middleware -------------------
 const authMiddleware = async (req, res, next) => {
   const token = req.headers["authorization"];
-  if (!token) return res.status(401).json({ error: "No token" });
+  if (!token) return res.status(401).json({ error: "No token provided" });
 
   try {
     const decoded = jwt.verify(token.split(" ")[1], JWT_SECRET);
@@ -26,18 +26,17 @@ const authMiddleware = async (req, res, next) => {
   }
 };
 
-// Root check
+// ------------------- Root -------------------
 app.get("/", (req, res) => {
   res.send("Chotu Link Backend is running 🚀");
 });
 
-/* ------------------- AUTH ------------------- */
+// ------------------- AUTH -------------------
 
 // Signup
 app.post("/signup", async (req, res) => {
   const { username, email, password } = req.body;
-  if (!username || !email || !password)
-    return res.status(400).json({ error: "All fields required" });
+  if (!username || !email || !password) return res.status(400).json({ error: "All fields required" });
 
   try {
     const hashed = await bcrypt.hash(password, 10);
@@ -55,22 +54,17 @@ app.post("/signup", async (req, res) => {
 // Login
 app.post("/login", async (req, res) => {
   const { email, password } = req.body;
-  if (!email || !password)
-    return res.status(400).json({ error: "Email & password required" });
+  if (!email || !password) return res.status(400).json({ error: "Email & password required" });
 
   try {
-    const [rows] = await pool.query("SELECT * FROM users WHERE email = ?", [
-      email,
-    ]);
+    const [rows] = await pool.query("SELECT * FROM users WHERE email = ?", [email]);
     if (rows.length === 0) return res.status(400).json({ error: "User not found" });
 
     const user = rows[0];
     const match = await bcrypt.compare(password, user.password_hash);
     if (!match) return res.status(400).json({ error: "Wrong password" });
 
-    const token = jwt.sign({ id: user.id, email: user.email }, JWT_SECRET, {
-      expiresIn: "7d",
-    });
+    const token = jwt.sign({ id: user.id, email: user.email }, JWT_SECRET, { expiresIn: "7d" });
 
     res.json({ token, user: { id: user.id, username: user.username, email: user.email } });
   } catch (err) {
@@ -79,9 +73,9 @@ app.post("/login", async (req, res) => {
   }
 });
 
-/* ------------------- URL SHORTENER ------------------- */
+// ------------------- URL SHORTENER -------------------
 
-// Shorten URL (only logged in users)
+// Shorten URL (authenticated users only)
 app.post('/shorten', authMiddleware, async (req, res) => {
   const { url } = req.body;
   if (!url) return res.status(400).json({ error: 'URL required' });
@@ -116,13 +110,32 @@ app.get("/mylinks", authMiddleware, async (req, res) => {
   }
 });
 
-// Redirect + Click Count
+// Get live click count for a single link
+app.get("/clicks/:code", async (req, res) => {
+  const { code } = req.params;
+
+  try {
+    const [rows] = await pool.query(
+      "SELECT click_count FROM links WHERE short_code = ?",
+      [code]
+    );
+
+    if (rows.length === 0) return res.status(404).json({ error: "Link not found" });
+
+    res.json({ short_code: code, click_count: rows[0].click_count });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
+// Redirect + update click count
 app.get('/:code', async (req, res) => {
   const { code } = req.params;
 
   try {
     const [rows] = await pool.query(
-      "SELECT original_url, click_count FROM links WHERE short_code = ?",
+      "SELECT original_url FROM links WHERE short_code = ?",
       [code]
     );
 
@@ -139,8 +152,5 @@ app.get('/:code', async (req, res) => {
     res.status(500).send("Server error");
   }
 });
-
-/* ------------------- USER DASHBOARD ------------------- */
-
 
 module.exports = app;
