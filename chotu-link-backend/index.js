@@ -23,7 +23,7 @@ app.post('/shorten', async (req, res) => {
     await pool.query("INSERT INTO links (short_code, original_url) VALUES (?, ?)", [shortCode, url]);
 
     // Use environment variable for base URL
-    const baseUrl = "https://chotu-link.vercel.app/";
+    const baseUrl = "https://chotu-link.vercel.app";
     res.json({ shortUrl: `${baseUrl}/${shortCode}` });
   } catch (err) {
     console.error(err);
