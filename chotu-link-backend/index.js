@@ -1,28 +1,99 @@
+require('dotenv').config(); 
 const express = require('express');
 const pool = require('./Databases/db');
 const { nanoid } = require('nanoid');
 const cors = require("cors");
+const bcrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken");
 
 const app = express();
 app.use(express.json());
 app.use(cors());
+
+const JWT_SECRET = process.env.JWT_SECRET; // ⚠️ Move to .env in production
+
+// Middleware: Auth
+const authMiddleware = async (req, res, next) => {
+  const token = req.headers["authorization"];
+  if (!token) return res.status(401).json({ error: "No token" });
+
+  try {
+    const decoded = jwt.verify(token.split(" ")[1], JWT_SECRET);
+    req.user = decoded;
+    next();
+  } catch (err) {
+    res.status(401).json({ error: "Invalid token" });
+  }
+};
 
 // Root check
 app.get("/", (req, res) => {
   res.send("Chotu Link Backend is running 🚀");
 });
 
-// Route: Shorten URL
-app.post('/shorten', async (req, res) => {
+/* ------------------- AUTH ------------------- */
+
+// Signup
+app.post("/signup", async (req, res) => {
+  const { username, email, password } = req.body;
+  if (!username || !email || !password)
+    return res.status(400).json({ error: "All fields required" });
+
+  try {
+    const hashed = await bcrypt.hash(password, 10);
+    await pool.query(
+      "INSERT INTO users (username, email, password_hash) VALUES (?, ?, ?)",
+      [username, email, hashed]
+    );
+    res.json({ message: "Signup successful" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Signup failed" });
+  }
+});
+
+// Login
+app.post("/login", async (req, res) => {
+  const { email, password } = req.body;
+  if (!email || !password)
+    return res.status(400).json({ error: "Email & password required" });
+
+  try {
+    const [rows] = await pool.query("SELECT * FROM users WHERE email = ?", [
+      email,
+    ]);
+    if (rows.length === 0) return res.status(400).json({ error: "User not found" });
+
+    const user = rows[0];
+    const match = await bcrypt.compare(password, user.password_hash);
+    if (!match) return res.status(400).json({ error: "Wrong password" });
+
+    const token = jwt.sign({ id: user.id, email: user.email }, JWT_SECRET, {
+      expiresIn: "7d",
+    });
+
+    res.json({ token, user: { id: user.id, username: user.username, email: user.email } });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Login failed" });
+  }
+});
+
+/* ------------------- URL SHORTENER ------------------- */
+
+// Shorten URL (only logged in users)
+app.post('/shorten', authMiddleware, async (req, res) => {
   const { url } = req.body;
   if (!url) return res.status(400).json({ error: 'URL required' });
 
   const shortCode = nanoid(6);
 
   try {
-    await pool.query("INSERT INTO links (short_code, original_url) VALUES (?, ?)", [shortCode, url]);
+    await pool.query(
+      "INSERT INTO links (short_code, original_url, user_id) VALUES (?, ?, ?)",
+      [shortCode, url, req.user.id]
+    );
 
-    // Use environment variable for base URL
     const baseUrl = "https://chotu-link.vercel.app";
     res.json({ shortUrl: `${baseUrl}/${shortCode}` });
   } catch (err) {
@@ -31,7 +102,7 @@ app.post('/shorten', async (req, res) => {
   }
 });
 
-// Route: Redirect
+// Redirect + Click Count
 app.get('/:code', async (req, res) => {
   const { code } = req.params;
 
@@ -43,13 +114,31 @@ app.get('/:code', async (req, res) => {
 
     if (rows.length === 0) return res.status(404).send("Link not found");
 
-    // Update click count
-    await pool.query("UPDATE links SET click_count = click_count + 1 WHERE short_code = ?", [code]);
+    await pool.query(
+      "UPDATE links SET click_count = click_count + 1 WHERE short_code = ?",
+      [code]
+    );
 
     res.redirect(rows[0].original_url);
   } catch (err) {
     console.error(err);
     res.status(500).send("Server error");
+  }
+});
+
+/* ------------------- USER DASHBOARD ------------------- */
+
+// Fetch all user links
+app.get("/mylinks", authMiddleware, async (req, res) => {
+  try {
+    const [links] = await pool.query(
+      "SELECT short_code, original_url, click_count, created_at FROM links WHERE user_id = ? ORDER BY created_at DESC",
+      [req.user.id]
+    );
+    res.json({ links });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Cannot fetch links" });
   }
 });
 
