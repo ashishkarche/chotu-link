@@ -23,7 +23,7 @@ app.post('/shorten', async (req, res) => {
     await pool.query("INSERT INTO links (short_code, original_url) VALUES (?, ?)", [shortCode, url]);
 
     // Use environment variable for base URL
-    const baseUrl = process.env.BASE_URL;
+    const baseUrl = process.env.URL;
     res.json({ shortUrl: `${baseUrl}/${shortCode}` });
   } catch (err) {
     console.error(err);
