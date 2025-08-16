@@ -8,12 +8,16 @@ function App() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const res = await axios.post("http://localhost:5000/shorten", { url }); 
+      const res = await axios.post(
+        `${process.env.REACT_APP_API_URL}/shorten`,
+        { url }
+      );
       setShortUrl(res.data.shortUrl);
     } catch (err) {
       alert("Error shortening URL");
     }
   };
+
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-100">

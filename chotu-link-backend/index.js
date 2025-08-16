@@ -6,13 +6,13 @@ const cors = require("cors");
 const app = express();
 app.use(express.json());
 app.use(cors());
-// Route: Shorten URL
 
+// Root check
 app.get("/", (req, res) => {
   res.send("Chotu Link Backend is running 🚀");
 });
 
-
+// Route: Shorten URL
 app.post('/shorten', async (req, res) => {
   const { url } = req.body;
   if (!url) return res.status(400).json({ error: 'URL required' });
@@ -21,7 +21,10 @@ app.post('/shorten', async (req, res) => {
 
   try {
     await pool.query("INSERT INTO links (short_code, original_url) VALUES (?, ?)", [shortCode, url]);
-    res.json({ shortUrl: `http://localhost:3000/${shortCode}` });
+
+    // Use environment variable for base URL
+    const baseUrl = process.env.BASE_URL;
+    res.json({ shortUrl: `${baseUrl}/${shortCode}` });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'DB error' });
@@ -33,7 +36,10 @@ app.get('/:code', async (req, res) => {
   const { code } = req.params;
 
   try {
-    const [rows] = await pool.query("SELECT original_url, click_count FROM links WHERE short_code = ?", [code]);
+    const [rows] = await pool.query(
+      "SELECT original_url, click_count FROM links WHERE short_code = ?",
+      [code]
+    );
 
     if (rows.length === 0) return res.status(404).send("Link not found");
 
@@ -47,3 +53,4 @@ app.get('/:code', async (req, res) => {
   }
 });
 
+module.exports = app;
