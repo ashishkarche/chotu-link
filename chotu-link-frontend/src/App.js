@@ -9,7 +9,7 @@ function App() {
     e.preventDefault();
     try {
       const res = await axios.post(
-        `${process.env.API}/shorten`,
+        `https://chotu-link.vercel.app/shorten`,
         { url }
       );
       setShortUrl(res.data.shortUrl);
