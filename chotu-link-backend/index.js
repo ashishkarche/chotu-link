@@ -10,7 +10,7 @@ const app = express();
 app.use(express.json());
 app.use(cors());
 
-const JWT_SECRET = process.env.JWT_SECRET; // ⚠️ Move to .env in production
+const JWT_SECRET = "cf94912ecdf1565e905ef12ebe0159519fc5de4c2d225560114a965b59734b2fc430d26a10ef3fb3252838b96462a8e2e578c7f8c5720a6d73fb6a8f80c638e6"; // ⚠️ Move to .env in production
 
 // Middleware: Auth
 const authMiddleware = async (req, res, next) => {
