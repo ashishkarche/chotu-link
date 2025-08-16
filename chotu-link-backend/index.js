@@ -102,6 +102,20 @@ app.post('/shorten', authMiddleware, async (req, res) => {
   }
 });
 
+// Fetch all user links
+app.get("/mylinks", authMiddleware, async (req, res) => {
+  try {
+    const [links] = await pool.query(
+      "SELECT short_code, original_url, click_count, created_at FROM links WHERE user_id = ? ORDER BY created_at DESC",
+      [req.user.id]
+    );
+    res.json({ links });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Cannot fetch links" });
+  }
+});
+
 // Redirect + Click Count
 app.get('/:code', async (req, res) => {
   const { code } = req.params;
@@ -128,18 +142,5 @@ app.get('/:code', async (req, res) => {
 
 /* ------------------- USER DASHBOARD ------------------- */
 
-// Fetch all user links
-app.get("/mylinks", authMiddleware, async (req, res) => {
-  try {
-    const [links] = await pool.query(
-      "SELECT short_code, original_url, click_count, created_at FROM links WHERE user_id = ? ORDER BY created_at DESC",
-      [req.user.id]
-    );
-    res.json({ links });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "Cannot fetch links" });
-  }
-});
 
 module.exports = app;
