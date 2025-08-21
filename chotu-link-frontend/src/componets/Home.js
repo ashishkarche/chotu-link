@@ -22,14 +22,14 @@ function Home() {
       {/* ✅ Hero + Shortener Combined */}
       <section className="hero d-flex align-items-center text-center">
         <div className="container">
-          <h1 className="display-4 fw-bold text-light mb-3">🚀 ChotuLink</h1>
+          <h1 className="display-4 fw-bold text-light mb-3">Shrink Links, Grow Reach.</h1>
           <p className="lead text-light mb-4">
             Free & Premium URL Shortener with Analytics + QR Codes
           </p>
 
           {/* URL Shortener directly inside hero */}
           <div className="shortener-card shadow-lg p-4 col-lg-8 mx-auto bg-white rounded-4">
-            <h3 className="mb-4 text-center fw-bold text-gradient">🔗 Shorten Your Link</h3>
+            <h3 className="mb-4 text-center fw-bold text-gradient">🔗 Shorten a Long Link</h3>
             <form onSubmit={handleSubmit} className="d-flex gap-2">
               <input
                 type="url"

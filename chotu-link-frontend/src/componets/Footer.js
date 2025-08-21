@@ -6,11 +6,21 @@ function Footer() {
           © {new Date().getFullYear()} <strong>ChotuLink | Ashish Karche</strong>. All Rights Reserved.
         </p>
         <div>
-          <a href="https://github.com/ashishkarche/chotu-link" target="_blank" className="text-muted me-3">
+          <a
+            href="https://github.com/ashishkarche/chotu-link"
+            target="_blank"
+            rel="noreferrer"
+            className="text-muted me-3"
+          >
             <i className="bi bi-github fs-5"></i>
           </a>
 
-          <a href="https://www.linkedin.com/in/ashish-karche-1a422b317/" target="_blank" className="text-muted">
+          <a
+            href="https://www.linkedin.com/in/ashish-karche-1a422b317/"
+            target="_blank"
+            rel="noreferrer"
+            className="text-muted"
+          >
             <i className="bi bi-linkedin fs-5"></i>
           </a>
         </div>
