@@ -18,11 +18,34 @@ function App() {
   };
 
   useEffect(() => {
-    // 🔹 If user tries to access Dashboard without login
+    // Prevent accessing Dashboard without login
     if (!token && page === "dashboard") {
       alert("⚠️ Please log in to access Dashboard.");
       setPage("home");
     }
+
+    // Disable right-click
+    const handleContextMenu = (e) => e.preventDefault();
+    document.addEventListener("contextmenu", handleContextMenu);
+
+    // Disable common dev tools keys (F12, Ctrl+Shift+I, Ctrl+Shift+J, Ctrl+U)
+    const handleKeyDown = (e) => {
+      if (
+        e.key === "F12" ||
+        (e.ctrlKey && e.shiftKey && ["I", "J"].includes(e.key.toUpperCase())) ||
+        (e.ctrlKey && e.key.toUpperCase() === "U")
+      ) {
+        e.preventDefault();
+        alert("⚠️ This action is disabled!");
+      }
+    };
+    document.addEventListener("keydown", handleKeyDown);
+
+    // Cleanup
+    return () => {
+      document.removeEventListener("contextmenu", handleContextMenu);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
   }, [token, page]);
 
   return (
