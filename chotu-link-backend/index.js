@@ -75,32 +75,47 @@ app.post("/login", async (req, res) => {
 
 // ------------------- URL SHORTENER -------------------
 
-// Shorten URL (authenticated users only)
-app.post('/shorten', authMiddleware, async (req, res) => {
+// Shorten URL (authenticated or guest)
+app.post('/shorten', async (req, res) => {
   const { url } = req.body;
   if (!url) return res.status(400).json({ error: 'URL required' });
 
   const shortCode = nanoid(6);
+  const baseUrl = "https://chotu-link.vercel.app"; // Your frontend domain
+  const shortUrl = `${baseUrl}/${shortCode}`;
+
+  // Check if user is authenticated
+  let userId = null;
+  const authHeader = req.headers["authorization"];
+  if (authHeader) {
+    try {
+      const token = authHeader.split(" ")[1];
+      const decoded = jwt.verify(token, JWT_SECRET);
+      userId = decoded.id; // store user id if logged in
+    } catch (err) {
+      // Token invalid, treat as guest
+      userId = null;
+    }
+  }
 
   try {
+    // Store link in DB, user_id can be null for guests
     await pool.query(
-      "INSERT INTO links (short_code, original_url, user_id) VALUES (?, ?, ?)",
-      [shortCode, url, req.user.id]
+      "INSERT INTO links (short_code, short_url, original_url, user_id) VALUES (?, ?, ?, ?)",
+      [shortCode, shortUrl, url, userId]
     );
 
-    const baseUrl = "https://chotu-link.vercel.app";
-    res.json({ shortUrl: `${baseUrl}/${shortCode}` });
+    res.json({ shortUrl });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'DB error' });
   }
 });
 
-// Fetch all user links
 app.get("/mylinks", authMiddleware, async (req, res) => {
   try {
     const [links] = await pool.query(
-      "SELECT short_code, original_url, click_count, created_at FROM links WHERE user_id = ? ORDER BY created_at DESC",
+      "SELECT short_code, short_url, original_url, click_count, created_at FROM links WHERE user_id = ? ORDER BY created_at DESC",
       [req.user.id]
     );
     res.json({ links });
@@ -109,6 +124,7 @@ app.get("/mylinks", authMiddleware, async (req, res) => {
     res.status(500).json({ error: "Cannot fetch links" });
   }
 });
+
 
 // Get live click count for a single link
 app.get("/clicks/:code", async (req, res) => {
