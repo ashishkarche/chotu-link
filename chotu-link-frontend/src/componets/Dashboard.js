@@ -124,7 +124,7 @@ function Dashboard({ token }) {
         ) : (
           <ul className="list-group premium-list">
             {links.map((link) => {
-              const shortLink = `${window.location.origin}/${link.short_code}`;
+              const shortLink = `${link.short_url}`;
               return (
                 <li
                   key={link.short_code}
