@@ -1,0 +1,51 @@
+/* Hero Section */
+.hero {
+  height: 70vh;
+  background: linear-gradient(135deg, #4e54c8, #8f94fb);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 0 0 40px 40px;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+}
+
+/* Shortener Card */
+.shortener-card {
+  border-radius: 20px;
+  background: #fff;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.shortener-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+}
+
+/* Gradient Text */
+.text-gradient {
+  background: linear-gradient(90deg, #4e54c8, #8f94fb);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* Premium Button */
+.btn-premium {
+  background: linear-gradient(45deg, #ff6a88, #ff99ac);
+  color: #fff;
+  border: none;
+  transition: all 0.3s ease;
+}
+.btn-premium:hover {
+  transform: translateY(-2px);
+  opacity: 0.9;
+}
+
+/* Feature Cards */
+.feature-card {
+  border-radius: 16px;
+  background: #fff;
+  transition: all 0.3s ease;
+}
+.feature-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+}

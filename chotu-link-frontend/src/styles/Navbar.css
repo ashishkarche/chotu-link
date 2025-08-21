@@ -1,0 +1,75 @@
+/* Navbar premium background with glass + gradient */
+.premium-navbar {
+  background: linear-gradient(135deg, #4e54c8, #8f94fb);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Brand gradient text */
+.brand-text {
+  background: linear-gradient(to right, #ff9a9e, #fad0c4);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* Navbar toggler */
+.custom-toggler {
+  border: none;
+}
+
+/* Premium Buttons */
+.btn-premium-outline {
+  border: 2px solid #fff;
+  color: #fff;
+  border-radius: 25px;
+  padding: 6px 18px;
+  transition: all 0.3s ease;
+}
+.btn-premium-outline:hover {
+  background: #fff;
+  color: #4e54c8;
+}
+
+/* Gradient filled button */
+.btn-premium-filled {
+  background: linear-gradient(45deg, #ff6a88, #ff99ac);
+  border: none;
+  color: #fff;
+  font-weight: 500;
+  border-radius: 25px;
+  padding: 6px 18px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.btn-premium-filled:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 14px rgba(255, 105, 135, 0.4);
+}
+
+/* Success button */
+.btn-premium-success {
+  background: linear-gradient(45deg, #00c853, #4caf50);
+  border: none;
+  color: #fff;
+  border-radius: 25px;
+  padding: 6px 18px;
+  transition: transform 0.2s ease;
+}
+.btn-premium-success:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 14px rgba(76, 175, 80, 0.4);
+}
+
+/* Danger button */
+.btn-premium-danger {
+  background: linear-gradient(45deg, #ff5252, #ff1744);
+  border: none;
+  color: #fff;
+  border-radius: 25px;
+  padding: 6px 18px;
+  transition: transform 0.2s ease;
+}
+.btn-premium-danger:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 14px rgba(244, 67, 54, 0.4);
+}
