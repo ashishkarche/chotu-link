@@ -1,7 +1,11 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
-// ✅ Correct import
+// ✅ QR Code
 import { QRCodeCanvas } from "qrcode.react";
+// ✅ Icons
+import { BsLink45Deg, BsQrCode, BsClipboard, BsFolder2Open } from "react-icons/bs";
+import { FaRegTimesCircle } from "react-icons/fa";
+
 import "../styles/Dashboard.css";
 
 function Dashboard({ token }) {
@@ -62,7 +66,7 @@ function Dashboard({ token }) {
 
   const copyToClipboard = (text) => {
     navigator.clipboard.writeText(text);
-    setToastMessage("✅ Link copied to clipboard!");
+    setToastMessage("Link copied to clipboard!");
     setShowToast(true);
     setTimeout(() => setShowToast(false), 2500);
   };
@@ -71,7 +75,9 @@ function Dashboard({ token }) {
     <div className="container my-5 position-relative">
       {/* Shorten Box */}
       <div className="card premium-card shadow-lg p-4">
-        <h2 className="mb-3 fw-bold text-gradient">🔗 Shorten Your URL</h2>
+        <h2 className="mb-3 fw-bold text-gradient">
+          <BsLink45Deg className="me-2" /> Shorten Your URL
+        </h2>
         <form onSubmit={handleSubmit} className="d-flex gap-2">
           <input
             type="url"
@@ -89,7 +95,7 @@ function Dashboard({ token }) {
         {shortUrl && (
           <div className="alert alert-success mt-4 d-flex justify-content-between align-items-center">
             <div>
-              ✅ Your short link:{" "}
+              Your short link:{" "}
               <a href={shortUrl} target="_blank" rel="noopener noreferrer">
                 {shortUrl}
               </a>
@@ -99,14 +105,14 @@ function Dashboard({ token }) {
                 className="btn btn-sm btn-outline-light rounded-pill"
                 onClick={() => copyToClipboard(shortUrl)}
               >
-                Copy
+                <BsClipboard /> Copy
               </button>
               <button
                 className="btn btn-sm btn-outline-dark rounded-pill"
                 data-bs-toggle="modal"
                 data-bs-target="#qrModal"
               >
-                QR Code
+                <BsQrCode /> QR
               </button>
             </div>
           </div>
@@ -115,7 +121,9 @@ function Dashboard({ token }) {
 
       {/* Links List */}
       <div className="mt-5">
-        <h3 className="fw-bold mb-3">📂 Your Links</h3>
+        <h3 className="fw-bold mb-3">
+          <BsFolder2Open className="me-2" /> Your Links
+        </h3>
 
         {loading ? (
           <div className="loading-spinner"></div>
@@ -150,7 +158,7 @@ function Dashboard({ token }) {
                       className="btn btn-sm btn-outline-primary rounded-pill"
                       onClick={() => copyToClipboard(shortLink)}
                     >
-                      Copy
+                      <BsClipboard /> Copy
                     </button>
                     <button
                       className="btn btn-sm btn-outline-dark rounded-pill"
@@ -158,7 +166,7 @@ function Dashboard({ token }) {
                       data-bs-target="#qrModal"
                       onClick={() => setShortUrl(shortLink)}
                     >
-                      QR
+                      <BsQrCode /> QR
                     </button>
                   </div>
                 </li>
@@ -177,7 +185,9 @@ function Dashboard({ token }) {
       >
         <div className="modal-dialog modal-dialog-centered">
           <div className="modal-content text-center p-4">
-            <h5 className="fw-bold mb-3">📱 QR Code</h5>
+            <h5 className="fw-bold mb-3">
+              <BsQrCode className="me-2" /> QR Code
+            </h5>
             {shortUrl && <QRCodeCanvas value={shortUrl} size={200} />}
             <p className="mt-3">
               <a href={shortUrl} target="_blank" rel="noopener noreferrer">
@@ -188,7 +198,7 @@ function Dashboard({ token }) {
               className="btn btn-secondary mt-2"
               data-bs-dismiss="modal"
             >
-              Close
+              <FaRegTimesCircle className="me-1" /> Close
             </button>
           </div>
         </div>

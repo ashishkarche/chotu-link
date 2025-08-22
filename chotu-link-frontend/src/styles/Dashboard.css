@@ -4,6 +4,7 @@
   background: #ffffff;
   transition: transform 0.25s ease, box-shadow 0.25s ease;
   border: 1px solid #f0f0f0;
+  padding: 20px;
 }
 .premium-card:hover {
   transform: translateY(-5px);
@@ -26,6 +27,8 @@
   letter-spacing: 0.5px;
   transition: all 0.3s ease;
   box-shadow: 0 4px 12px rgba(255, 105, 135, 0.3);
+  padding: 12px 28px;
+  border-radius: 50px;
 }
 .btn-premium:hover {
   opacity: 0.9;
@@ -41,6 +44,9 @@
   padding: 15px 20px;
   box-shadow: 0 3px 8px rgba(0, 0, 0, 0.06);
   transition: all 0.2s ease;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 .premium-list .list-group-item:hover {
   transform: translateY(-2px);
@@ -64,6 +70,7 @@
   background: #fff;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
   animation: popIn 0.3s ease;
+  padding: 20px;
 }
 @keyframes popIn {
   from {
@@ -89,6 +96,7 @@
   padding: 12px 18px;
   border: 1px solid #ddd;
   transition: all 0.2s ease;
+  font-size: 1rem;
 }
 .form-control:focus {
   border-color: #6a11cb;
@@ -112,32 +120,48 @@
 }
 
 /* Responsive Styles */
+@media (max-width: 1024px) {
+  .premium-card {
+    padding: 16px;
+  }
+  .btn-premium {
+    padding: 10px 24px;
+  }
+  .form-control {
+    font-size: 0.95rem;
+  }
+}
+
 @media (max-width: 768px) {
   form.d-flex {
     flex-direction: column;
-    gap: 10px;
+    gap: 12px;
   }
   .btn-premium {
     width: 100%;
+    padding: 12px 0;
   }
   .premium-list .list-group-item {
     flex-direction: column;
     align-items: flex-start;
     gap: 10px;
   }
-  .premium-list .list-group-item .d-flex {
-    flex-wrap: wrap;
-    gap: 5px;
-  }
   .modal-content {
-    width: 90%;
+    width: 95%;
     margin: auto;
   }
 }
 
 @media (max-width: 480px) {
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-size: 1.2rem;
+  }
   .form-control {
-    padding: 10px 12px;
+    padding: 10px 14px;
+    font-size: 0.9rem;
   }
   .btn-premium {
     padding: 10px 0;
@@ -145,6 +169,7 @@
   }
   .premium-list .list-group-item {
     padding: 12px 15px;
+    font-size: 0.9rem;
   }
   .toast-container {
     bottom: 1rem;

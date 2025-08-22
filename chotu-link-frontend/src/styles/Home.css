@@ -7,6 +7,60 @@
   align-items: center;
   border-radius: 0 0 40px 40px;
   box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+  overflow: hidden;
+  position: relative;
+}
+
+/* Starry Background */
+.hero::before {
+  content: "";
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: transparent url("https://www.transparenttextures.com/patterns/stardust.png") repeat;
+  opacity: 0.25;
+  animation: starMove 80s linear infinite;
+  z-index: 0;
+}
+
+@keyframes starMove {
+  from { transform: translate(0,0); }
+  to { transform: translate(-800px, -800px); }
+}
+
+/* Floating Glow Particles */
+.glow-particle {
+  position: absolute;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.8);
+  box-shadow: 0 0 15px rgba(255,255,255,0.7);
+  animation: floatParticle 12s linear infinite;
+  z-index: 0;
+}
+
+@keyframes floatParticle {
+  from { transform: translateY(0) translateX(0); opacity: 0.7; }
+  to { transform: translateY(-200px) translateX(50px); opacity: 0; }
+}
+
+/* Floating URL snippets */
+.floating-url {
+  position: absolute;
+  font-size: 13px;
+  font-family: monospace;
+  color: rgba(255,255,255,0.6);
+  background: rgba(255,255,255,0.05);
+  padding: 4px 8px;
+  border-radius: 6px;
+  backdrop-filter: blur(3px);
+  animation: floatUrl 8s ease-in-out infinite;
+}
+
+@keyframes floatUrl {
+  0%, 100% { transform: translateY(0); opacity: 0.4; }
+  50% { transform: translateY(-20px); opacity: 0.9; }
 }
 
 /* Shortener Card */
@@ -14,10 +68,12 @@
   border-radius: 20px;
   background: #fff;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
+  z-index: 2;
+  position: relative;
 }
 .shortener-card:hover {
   transform: translateY(-3px);
-  box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+  box-shadow: 0 10px 25px rgba(0,0,0,0.1);
 }
 
 /* Gradient Text */
@@ -44,8 +100,9 @@
   border-radius: 16px;
   background: #fff;
   transition: all 0.3s ease;
+  height: 100%;
 }
 .feature-card:hover {
   transform: translateY(-5px);
-  box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+  box-shadow: 0 8px 20px rgba(0,0,0,0.12);
 }

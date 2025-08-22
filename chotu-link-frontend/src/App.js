@@ -5,6 +5,7 @@ import Signup from "./componets/Signup";
 import Home from "./componets/Home";
 import Navbar from "./componets/Navbar";
 import Footer from "./componets/Footer";
+import PremiumPopup from "./componets/PremiumPopup";
 import "./App.css";
 
 function App() {
@@ -30,14 +31,14 @@ function App() {
 
     // Disable common dev tools keys (F12, Ctrl+Shift+I, Ctrl+Shift+J, Ctrl+U)
     const handleKeyDown = (e) => {
-      if (
-        e.key === "F12" ||
-        (e.ctrlKey && e.shiftKey && ["I", "J"].includes(e.key.toUpperCase())) ||
-        (e.ctrlKey && e.key.toUpperCase() === "U")
-      ) {
-        e.preventDefault();
-        alert("⚠️ This action is disabled!");
-      }
+      // if (
+      //   e.key === "F11" ||
+      //   (e.ctrlKey && e.shiftKey && ["I", "J"].includes(e.key.toUpperCase())) ||
+      //   (e.ctrlKey && e.key.toUpperCase() === "U")
+      // ) {
+      //   e.preventDefault();
+      //   alert("⚠️ This action is disabled!");
+      // }
     };
     document.addEventListener("keydown", handleKeyDown);
 
@@ -60,7 +61,7 @@ function App() {
           <Dashboard token={token} handleLogout={handleLogout} />
         )}
       </main>
-
+      <PremiumPopup token={token} setPage={setPage} />
       <Footer />
     </div>
   );

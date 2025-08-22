@@ -1,21 +1,23 @@
 import React from "react";
-import "../styles/Navbar.css"; // custom styles
+import { FaLink } from "react-icons/fa";
+import "../styles/Navbar.css";
 
 function Navbar({ token, setPage, handleLogout }) {
   return (
-    <nav className="navbar navbar-expand-lg premium-navbar shadow-sm px-4 py-2 sticky-top">
+    <nav className="navbar navbar-expand-lg premium-navbar px-4 py-2 sticky-top">
       <a
-        className="navbar-brand fw-bold fs-4"
+        className="navbar-brand fw-bold fs-4 d-flex align-items-center gap-2"
         href="#"
         onClick={(e) => {
           e.preventDefault();
           setPage("home");
         }}
       >
-        🚀 <span className="brand-text">ChotuLink</span>
+        <FaLink className="brand-icon" />
+        <span className="brand-text">ChotuLink</span>
       </a>
 
-      {/* Toggle button for mobile */}
+      {/* Mobile Toggle */}
       <button
         className="navbar-toggler custom-toggler"
         type="button"
@@ -29,17 +31,17 @@ function Navbar({ token, setPage, handleLogout }) {
       </button>
 
       <div className="collapse navbar-collapse" id="navbarContent">
-        <div className="ms-auto d-flex align-items-center gap-2">
+        <div className="ms-auto d-flex align-items-center gap-2 flex-wrap">
           {!token ? (
             <>
               <button
-                className="btn btn-premium-outline"
+                className="btn btn-nav-outline"
                 onClick={() => setPage("login")}
               >
                 Login
               </button>
               <button
-                className="btn btn-premium-filled"
+                className="btn btn-nav-filled"
                 onClick={() => setPage("signup")}
               >
                 Signup
@@ -48,12 +50,12 @@ function Navbar({ token, setPage, handleLogout }) {
           ) : (
             <>
               <button
-                className="btn btn-premium-success"
+                className="btn btn-nav-success"
                 onClick={() => setPage("dashboard")}
               >
                 Dashboard
               </button>
-              <button className="btn btn-premium-danger" onClick={handleLogout}>
+              <button className="btn btn-nav-danger" onClick={handleLogout}>
                 Logout
               </button>
             </>
