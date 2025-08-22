@@ -35,7 +35,7 @@ function App() {
     // Disable common dev tools keys (F12, Ctrl+Shift+I, Ctrl+Shift+J, Ctrl+U)
     const handleKeyDown = (e) => {
       if (
-        e.key === "F11" ||
+        e.key === "F12" ||
         (e.ctrlKey && e.shiftKey && ["I", "J"].includes(e.key.toUpperCase())) ||
         (e.ctrlKey && e.key.toUpperCase() === "U")
       ) {

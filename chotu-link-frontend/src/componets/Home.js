@@ -1,12 +1,14 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
 import { FaBolt, FaChartLine, FaQrcode, FaLock, FaShareAlt, FaPaste, FaLink, FaPaperPlane } from "react-icons/fa";
+import PremiumPopup from "./PremiumPopup"; // import popup
 import "../styles/Home.css";
 
-function Home() {
+function Home({ token, setPage }) {
   const [url, setUrl] = useState("");
   const [shortUrl, setShortUrl] = useState("");
   const [floatingUrls, setFloatingUrls] = useState([]);
+  const [showPremiumPopup, setShowPremiumPopup] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -14,6 +16,12 @@ function Home() {
       const res = await axios.post("https://chotu-link.vercel.app/shorten", { url });
       setShortUrl(res.data.shortUrl);
       setUrl("");
+
+      // Show premium popup if user not logged in
+      if (!token) {
+        setShowPremiumPopup(true);
+      }
+
     } catch (err) {
       alert(err.response?.data?.error || "Shortening failed");
     }
@@ -22,17 +30,17 @@ function Home() {
   // ✅ Generate random floating URLs
   useEffect(() => {
     const urls = [
-      "https://bit.ly/abc123",
-      "http://tiny.cc/xyz89",
-      "https://short.ly/hello",
+      "https://Chotu.ly/abc123",
+      "http://Chotu.cc/xyz89",
+      "https://Chotu.ly/hello",
       "http://chotu.io/9hd8",
-      "https://go.link/fast",
+      "https://Chotu.link/fast",
     ];
 
     const randomUrls = Array.from({ length: 4 }, () => {
       const randomUrl = urls[Math.floor(Math.random() * urls.length)];
-      const top = `${Math.floor(Math.random() * 70) + 10}%`; // between 10% - 80%
-      const left = `${Math.floor(Math.random() * 80) + 5}%`; // between 5% - 85%
+      const top = `${Math.floor(Math.random() * 70) + 10}%`;
+      const left = `${Math.floor(Math.random() * 80) + 5}%`;
       return { text: randomUrl, top, left };
     });
 
@@ -41,10 +49,14 @@ function Home() {
 
   return (
     <div>
-      {/* ✅ Hero + Shortener */}
+      {/* Premium Popup */}
+      {showPremiumPopup && !token && (
+        <PremiumPopup token={token} setPage={setPage} />
+      )}
+
+      {/* Hero + Shortener */}
       <section className="hero d-flex align-items-center text-center">
         <div className="container position-relative">
-          {/* Floating URL snippets */}
           {floatingUrls.map((item, index) => (
             <span
               key={index}
@@ -55,20 +67,20 @@ function Home() {
             </span>
           ))}
 
-          {/* Floating glowing particles */}
+          {/* Glowing particles */}
           <span className="glow-particle" style={{ top: "30%", left: "20%", width: "6px", height: "6px" }}></span>
           <span className="glow-particle" style={{ top: "60%", left: "70%", width: "10px", height: "10px" }}></span>
           <span className="glow-particle" style={{ top: "40%", left: "50%", width: "8px", height: "8px" }}></span>
 
           <h1 className="display-4 fw-bold text-light mb-3 animate-fade">
-            Shrink Links, Grow Reach 🚀
+            Shrink Links, Grow Reach
           </h1>
           <p className="lead text-light mb-4 animate-fade-delayed">
             Free & Premium URL Shortener with Analytics + QR Codes
           </p>
 
           <div className="shortener-card shadow-lg p-4 col-lg-8 mx-auto bg-white rounded-4">
-            <h3 className="mb-4 text-center fw-bold text-gradient">🔗 Shorten a Long Link</h3>
+            <h3 className="mb-4 text-center fw-bold text-gradient">Shorten a Long Link</h3>
             <form onSubmit={handleSubmit} className="d-flex gap-2">
               <input
                 type="url"
@@ -85,7 +97,7 @@ function Home() {
 
             {shortUrl && (
               <div className="alert alert-success mt-4 text-center">
-                ✅ Your short link:{" "}
+                Your short link:{" "}
                 <a href={shortUrl} target="_blank" rel="noopener noreferrer">
                   {shortUrl}
                 </a>
