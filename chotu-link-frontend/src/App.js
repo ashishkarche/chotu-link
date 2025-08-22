@@ -1,4 +1,6 @@
 import { useState, useEffect } from "react";
+import { ToastContainer, toast } from "react-toastify";
+import 'react-toastify/dist/ReactToastify.css';
 import Dashboard from "./componets/Dashboard";
 import Login from "./componets/Login";
 import Signup from "./componets/Signup";
@@ -16,12 +18,13 @@ function App() {
     localStorage.removeItem("token");
     setToken(null);
     setPage("home");
+    toast.info("Logged out successfully!");
   };
 
   useEffect(() => {
     // Prevent accessing Dashboard without login
     if (!token && page === "dashboard") {
-      alert("⚠️ Please log in to access Dashboard.");
+      toast.warning("⚠️ Please log in to access Dashboard.");
       setPage("home");
     }
 
@@ -31,14 +34,14 @@ function App() {
 
     // Disable common dev tools keys (F12, Ctrl+Shift+I, Ctrl+Shift+J, Ctrl+U)
     const handleKeyDown = (e) => {
-      // if (
-      //   e.key === "F11" ||
-      //   (e.ctrlKey && e.shiftKey && ["I", "J"].includes(e.key.toUpperCase())) ||
-      //   (e.ctrlKey && e.key.toUpperCase() === "U")
-      // ) {
-      //   e.preventDefault();
-      //   alert("⚠️ This action is disabled!");
-      // }
+      if (
+        e.key === "F11" ||
+        (e.ctrlKey && e.shiftKey && ["I", "J"].includes(e.key.toUpperCase())) ||
+        (e.ctrlKey && e.key.toUpperCase() === "U")
+      ) {
+        e.preventDefault();
+        toast.error("⚠️ This action is disabled!");
+      }
     };
     document.addEventListener("keydown", handleKeyDown);
 
@@ -61,8 +64,20 @@ function App() {
           <Dashboard token={token} handleLogout={handleLogout} />
         )}
       </main>
+
       <PremiumPopup token={token} setPage={setPage} />
       <Footer />
+      <ToastContainer 
+        position="top-right" 
+        autoClose={3000} 
+        hideProgressBar={false} 
+        newestOnTop={false} 
+        closeOnClick 
+        rtl={false} 
+        pauseOnFocusLoss 
+        draggable 
+        pauseOnHover
+      />
     </div>
   );
 }
