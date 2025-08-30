@@ -58,7 +58,7 @@ ChotuLink is a modern URL shortening web application designed to make link manag
 ### 1. Clone the repository
 
 ```bash
-git clone https://github.com/ashishkarche/chotulink.git
+git clone https://github.com/ashishkarche/chotu-link.git
 cd chotu-link
 ```
 
@@ -187,7 +187,7 @@ npm start
 
 ## License
 
-MIT License © 2025
+This project is licensed under the [MIT License](LICENSE) © 2025 Ashish Karche
 
 ---
 
