@@ -10,7 +10,7 @@ const app = express();
 app.use(express.json());
 app.use(cors());
 
-const JWT_SECRET = process.env.JWT_SECRET;
+const JWT_SECRET = process.env.JWT_SECRET || "fallback_secret_key";
 
 // ------------------- Middleware -------------------
 const authMiddleware = async (req, res, next) => {
