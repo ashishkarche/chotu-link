@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { FaLink, FaQrcode, FaChartLine, FaLock } from "react-icons/fa";
 import "../styles/PremiumPopup.css";
 
 function PremiumPopup({ token, setPage }) {
@@ -7,7 +8,7 @@ function PremiumPopup({ token, setPage }) {
 
   useEffect(() => {
     if (!token) {
-      const timer = setTimeout(() => setShow(true), 2000);
+      const timer = setTimeout(() => setShow(true), 2500);
       return () => clearTimeout(timer);
     }
   }, [token]);
@@ -24,7 +25,7 @@ function PremiumPopup({ token, setPage }) {
 
   return (
     <div className="premium-popup-overlay">
-      <div className="premium-popup">
+      <div className="premium-popup animate-popup">
         {/* Close Button */}
         <button
           className="popup-close"
@@ -34,21 +35,26 @@ function PremiumPopup({ token, setPage }) {
           ✖
         </button>
 
-        <h3>🚀 Unlock Premium Features</h3>
-        <p>You're just one step away from a better experience!</p>
-        <p>
-          <strong>Login now</strong> to access your link history, generate QR
-          codes instantly, and explore exclusive tools designed for you.
-        </p>
-        <p>✨ Don’t miss out — make the most of every click.</p>
+        <h3 className="popup-title">🚀 Unlock Premium</h3>
+        <p className="popup-sub">Take your link game to the next level!</p>
+
+        {/* Benefits List */}
+        <ul className="popup-benefits">
+          <li><FaLink className="icon" /> Unlimited Links</li>
+          <li><FaChartLine className="icon" /> Analytics & History</li>
+          <li><FaQrcode className="icon" /> QR Code Generator</li>
+          <li><FaLock className="icon" /> Password-Protected Links</li>
+        </ul>
+
+        <p className="popup-note">✨ Don’t miss out — maximize every click!</p>
 
         <div className="popup-actions">
           <button
-            className="btn btn-primary"
+            className="btn btn-upgrade"
             onClick={handleBuyPremium}
             disabled={loading}
           >
-            {loading ? <span className="loader"></span> : "Login"}
+            {loading ? <span className="loader"></span> : "Upgrade Now 🚀"}
           </button>
           <button
             className="btn btn-secondary"

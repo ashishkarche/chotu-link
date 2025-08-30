@@ -1,10 +1,10 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
-import { 
-  FaBolt, FaChartLine, FaQrcode, FaLock, FaShareAlt, 
-  FaPaste, FaLink, FaPaperPlane 
+import {
+  FaBolt, FaChartLine, FaQrcode, FaLock, FaShareAlt,
+  FaPaste, FaLink, FaPaperPlane
 } from "react-icons/fa";
-import PremiumPopup from "./PremiumPopup"; 
+import PremiumPopup from "./PremiumPopup";
 import "../styles/Home.css";
 
 function Home({ token, setPage }) {
@@ -12,11 +12,23 @@ function Home({ token, setPage }) {
   const [shortUrl, setShortUrl] = useState("");
   const [floatingUrls, setFloatingUrls] = useState([]);
   const [showPremiumPopup, setShowPremiumPopup] = useState(false);
+  const [guestCount, setGuestCount] = useState(
+    parseInt(localStorage.getItem("guestCount") || "0")
+  );
+  const [disabled, setDisabled] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    // ✅ Guest limit check before API call
+    if (!token && guestCount >= 5) {
+      alert("🚫 Guest limit reached (5). Please buy Premium for unlimited shortening.");
+      setShowPremiumPopup(true);
+      setDisabled(true);
+      return;
+    }
+
     try {
-      // ✅ If user is logged in, send request with token
       const config = token
         ? { headers: { Authorization: `Bearer ${token}` } }
         : {};
@@ -30,14 +42,23 @@ function Home({ token, setPage }) {
       setShortUrl(res.data.shortUrl);
       setUrl("");
 
-      // ✅ If free user hits limit → show premium popup
-      if (res.data.limitReached) {
-        setShowPremiumPopup(true);
-      }
-
-      // ✅ If guest (no token) → show popup after first shorten
+      // ✅ Guest: increase counter
       if (!token) {
-        setShowPremiumPopup(true);
+        const newCount = guestCount + 1;
+        setGuestCount(newCount);
+        localStorage.setItem("guestCount", newCount);
+
+        // Show upsell popup on first shorten
+        if (newCount === 1) {
+          setShowPremiumPopup(true);
+        }
+
+        // Lock input after reaching 5
+        if (newCount >= 5) {
+          alert("⚠️ You’ve hit the guest limit. Upgrade to Premium for unlimited shortens!");
+          setShowPremiumPopup(true);
+          setDisabled(true);
+        }
       }
     } catch (err) {
       alert(err.response?.data?.error || "Shortening failed");
@@ -84,16 +105,11 @@ function Home({ token, setPage }) {
             </span>
           ))}
 
-          {/* Glow particles */}
-          <span className="glow-particle" style={{ top: "30%", left: "20%", width: "6px", height: "6px" }}></span>
-          <span className="glow-particle" style={{ top: "60%", left: "70%", width: "10px", height: "10px" }}></span>
-          <span className="glow-particle" style={{ top: "40%", left: "50%", width: "8px", height: "8px" }}></span>
-
           <h1 className="display-4 fw-bold text-light mb-3 animate-fade">
             Shrink Links, Grow Reach
           </h1>
           <p className="lead text-light mb-4 animate-fade-delayed">
-            Free & Premium URL Shortener with Analytics + QR Codes
+            Free (5 links for Guests) & Premium (Unlimited) with Analytics + QR Codes
           </p>
 
           <div className="shortener-card shadow-lg p-4 col-lg-8 mx-auto bg-white rounded-4">
@@ -106,11 +122,25 @@ function Home({ token, setPage }) {
                 onChange={(e) => setUrl(e.target.value)}
                 className="form-control rounded-pill"
                 required
+                disabled={disabled}
               />
-              <button type="submit" className="btn btn-premium rounded-pill px-4">
+              <button
+                type="submit"
+                className="btn btn-premium rounded-pill px-4"
+                disabled={disabled}
+              >
                 Shorten
               </button>
             </form>
+
+            {/* Guest counter info */}
+            {!token && (
+              <p className="mt-3 text-muted small">
+                {disabled
+                  ? "🚫 Limit reached (5). Please buy Premium for unlimited shortens."
+                  : `You have used ${guestCount}/5 free shortens.`}
+              </p>
+            )}
 
             {shortUrl && (
               <div className="alert alert-success mt-4 text-center">
@@ -125,6 +155,65 @@ function Home({ token, setPage }) {
       </section>
 
       {/* Features Section */}
+      {/* Plans & Benefits */}
+      <section className="py-5 bg-light">
+        <div className="container">
+          <h2 className="text-center mb-5 fw-bold text-gradient">🎉 Plans & Benefits</h2>
+
+          <div className="row justify-content-center g-4">
+
+            {/* Free Plan */}
+            <div className="col-md-5">
+              <div className="plan-card shadow-sm p-4 bg-white rounded-4 text-center h-100">
+                <h3 className="fw-bold text-primary mb-3">Free Users</h3>
+                <p className="small text-muted mb-4">Great for quick, casual link sharing</p>
+                <ul className="list-unstyled text-muted text-start d-inline-block">
+                  <li><FaLink className="me-2 text-primary" /> Shorten up to <b>5 links</b></li>
+                  <li><FaBolt className="me-2 text-primary" /> Instant shortening (no login needed)</li>
+                  <li><FaLock className="me-2 text-primary" /> Secure & spam-protected links</li>
+                  <li><FaShareAlt className="me-2 text-primary" /> Easy copy & share</li>
+                </ul>
+                <button className="btn btn-outline-primary rounded-pill mt-3 px-4 fw-bold" disabled>
+                  Free Forever ✅
+                </button>
+              </div>
+            </div>
+
+            {/* Premium Plan */}
+            <div className="col-md-5">
+              <div className="plan-card premium-card shadow-lg p-4 bg-white rounded-4 text-center h-100 position-relative">
+                <span className="badge-premium">Most Popular</span>
+                <h3 className="fw-bold text-warning mb-3">Premium Users</h3>
+                <p className="small text-muted mb-4">For professionals & businesses 🚀</p>
+                <ul className="list-unstyled text-muted text-start d-inline-block">
+                  <li><FaLink className="me-2 text-warning" /> Unlimited link shortening</li>
+                  <li><FaChartLine className="me-2 text-warning" /> Detailed analytics & history</li>
+                  <li><FaQrcode className="me-2 text-warning" /> Custom QR Codes</li>
+                  <li><FaPaste className="me-2 text-warning" /> Custom aliases for branding</li>
+                  <li><FaLock className="me-2 text-warning" /> Password-protected links</li>
+                  <li><FaBolt className="me-2 text-warning" /> Priority performance</li>
+                </ul>
+                {/* Safe click handler */}
+                <button
+                  className="btn btn-warning rounded-pill mt-3 px-4 fw-bold"
+                  onClick={() => {
+                    if (!token) {
+                      setShowPremiumPopup(true); // Show popup if user is not logged in
+                    } else {
+                      setPage?.("login"); // Or redirect to premium dashboard if logged in
+                    }
+                  }}
+                >
+                  {token ? "Go to Premium 🚀" : "Upgrade to Premium 🚀"}
+                </button>
+
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+
       <section className="py-5 bg-light">
         <div className="container">
           <h2 className="text-center mb-5 fw-bold text-gradient">✨ Our Features</h2>

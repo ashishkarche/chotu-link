@@ -11,8 +11,9 @@ import PremiumPopup from "./componets/PremiumPopup";
 import "./App.css";
 
 function App() {
-  const [token, setToken] = useState(localStorage.getItem("token"));
-  const [page, setPage] = useState("home");
+  const storedToken = localStorage.getItem("token");
+  const [token, setToken] = useState(storedToken);
+  const [page, setPage] = useState(storedToken ? "dashboard" : "home");
 
   const handleLogout = () => {
     localStorage.removeItem("token");

@@ -3,20 +3,27 @@ import axios from "axios";
 // ✅ QR Code
 import { QRCodeCanvas } from "qrcode.react";
 // ✅ Icons
-import { BsLink45Deg, BsQrCode, BsClipboard, BsFolder2Open, BsClock } from "react-icons/bs";
+import {
+  BsLink45Deg,
+  BsQrCode,
+  BsClipboard,
+  BsFolder2Open,
+  BsClock,
+} from "react-icons/bs";
 import { FaRegTimesCircle } from "react-icons/fa";
 
 import "../styles/Dashboard.css";
 
 function Dashboard({ token }) {
   const [url, setUrl] = useState("");
-  const [expiryMinutes, setExpiryMinutes] = useState(""); // ⏳ expiry input
+  const [expiryMinutes, setExpiryMinutes] = useState("");
   const [shortUrl, setShortUrl] = useState("");
   const [expiresAt, setExpiresAt] = useState("");
   const [links, setLinks] = useState([]);
   const [toastMessage, setToastMessage] = useState("");
   const [showToast, setShowToast] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [qrLink, setQrLink] = useState(""); // ✅ separate state for QR modal
 
   const handleTokenExpiry = () => {
     alert("⚠️ Session expired. Please log in again.");
@@ -25,13 +32,13 @@ function Dashboard({ token }) {
   };
 
   const fetchLinks = async () => {
-    if (!token) return; // guests skip
+    if (!token) return;
     try {
       setLoading(true);
       const res = await axios.get("https://chotu-link.vercel.app/mylinks", {
         headers: { Authorization: `Bearer ${token}` },
       });
-      setLinks(res.data.links);
+      setLinks(res.data.links || []);
     } catch (err) {
       if (err.response?.status === 401) {
         handleTokenExpiry();
@@ -45,7 +52,7 @@ function Dashboard({ token }) {
 
   useEffect(() => {
     fetchLinks();
-  }, []);
+  }, [token]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -61,7 +68,7 @@ function Dashboard({ token }) {
       setUrl("");
       setExpiryMinutes("");
 
-      if (token) fetchLinks(); // refresh list only for logged in users
+      fetchLinks(); // ✅ always refresh if user logged in
     } catch (err) {
       if (err.response?.status === 401) {
         handleTokenExpiry();
@@ -73,18 +80,19 @@ function Dashboard({ token }) {
 
   const copyToClipboard = (text) => {
     navigator.clipboard.writeText(text);
-    setToastMessage("Link copied to clipboard!");
+    setToastMessage("✅ Link copied to clipboard!");
     setShowToast(true);
     setTimeout(() => setShowToast(false), 2500);
   };
 
   return (
     <div className="container my-5 position-relative">
-      {/* Shorten Box */}
+      {/* 🔗 Shorten Box */}
       <div className="card premium-card shadow-lg p-4">
         <h2 className="mb-3 fw-bold text-gradient">
           <BsLink45Deg className="me-2" /> Shorten Your URL
         </h2>
+
         <form onSubmit={handleSubmit} className="d-flex gap-2 flex-wrap">
           <input
             type="url"
@@ -94,6 +102,7 @@ function Dashboard({ token }) {
             className="form-control rounded-pill"
             required
           />
+
           {token && (
             <input
               type="number"
@@ -105,6 +114,7 @@ function Dashboard({ token }) {
               style={{ maxWidth: "200px" }}
             />
           )}
+
           <button type="submit" className="btn btn-premium rounded-pill px-4">
             Shorten
           </button>
@@ -124,6 +134,7 @@ function Dashboard({ token }) {
                 </div>
               )}
             </div>
+
             <div className="d-flex gap-2 mt-2 mt-md-0">
               <button
                 className="btn btn-sm btn-outline-light rounded-pill"
@@ -135,6 +146,7 @@ function Dashboard({ token }) {
                 className="btn btn-sm btn-outline-dark rounded-pill"
                 data-bs-toggle="modal"
                 data-bs-target="#qrModal"
+                onClick={() => setQrLink(shortUrl)}
               >
                 <BsQrCode /> QR
               </button>
@@ -143,7 +155,7 @@ function Dashboard({ token }) {
         )}
       </div>
 
-      {/* Links List (only for logged in users) */}
+      {/* 📂 Links List (only for logged in users) */}
       {token && (
         <div className="mt-5">
           <h3 className="fw-bold mb-3">
@@ -158,47 +170,70 @@ function Dashboard({ token }) {
             <ul className="list-group premium-list">
               {links.map((link) => {
                 const shortLink = `${link.short_url}`;
+                const isExpired =
+                  link.expires_at && new Date(link.expires_at) < new Date();
+
                 return (
                   <li
                     key={link.short_code}
-                    className="list-group-item d-flex justify-content-between align-items-center flex-wrap"
+                    className={`list-group-item d-flex justify-content-between align-items-center flex-wrap ${isExpired ? "opacity-50" : ""
+                      }`}
                   >
                     <div>
                       <a
-                        href={shortLink}
+                        href={isExpired ? "#" : shortLink}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="fw-semibold text-decoration-none short-link"
+                        className={`fw-semibold text-decoration-none short-link ${isExpired ? "text-muted" : ""
+                          }`}
+                        onClick={(e) => isExpired && e.preventDefault()}
                       >
                         {shortLink}
                       </a>
                       <br />
                       <small className="text-muted">{link.original_url}</small>
+
                       {link.expires_at && (
-                        <div className="small text-danger mt-1">
-                          <BsClock className="me-1" /> Expires at:{" "}
-                          {new Date(link.expires_at).toLocaleString()}
+                        <div className="small mt-1">
+                          <BsClock className="me-1" />
+                          {isExpired ? (
+                            <span className="text-danger fw-bold">Expired</span>
+                          ) : (
+                            <>
+                              Expires at:{" "}
+                              {new Date(link.expires_at).toLocaleString()}
+                            </>
+                          )}
                         </div>
                       )}
                     </div>
+
                     <div className="d-flex align-items-center gap-2 mt-2 mt-md-0">
-                      <span className="badge bg-primary rounded-pill">
+                      <span
+                        className={`badge rounded-pill ${isExpired ? "bg-secondary" : "bg-primary"
+                          }`}
+                      >
                         {link.click_count} clicks
                       </span>
-                      <button
-                        className="btn btn-sm btn-outline-primary rounded-pill"
-                        onClick={() => copyToClipboard(shortLink)}
-                      >
-                        <BsClipboard /> Copy
-                      </button>
-                      <button
-                        className="btn btn-sm btn-outline-dark rounded-pill"
-                        data-bs-toggle="modal"
-                        data-bs-target="#qrModal"
-                        onClick={() => setShortUrl(shortLink)}
-                      >
-                        <BsQrCode /> QR
-                      </button>
+
+                      {!isExpired && (
+                        <>
+                          <button
+                            className="btn btn-sm btn-outline-primary rounded-pill"
+                            onClick={() => copyToClipboard(shortLink)}
+                          >
+                            <BsClipboard /> Copy
+                          </button>
+                          <button
+                            className="btn btn-sm btn-outline-dark rounded-pill"
+                            data-bs-toggle="modal"
+                            data-bs-target="#qrModal"
+                            onClick={() => setShortUrl(shortLink)}
+                          >
+                            <BsQrCode /> QR
+                          </button>
+                        </>
+                      )}
                     </div>
                   </li>
                 );
@@ -208,7 +243,7 @@ function Dashboard({ token }) {
         </div>
       )}
 
-      {/* ✅ QR Code Modal */}
+      {/* 📱 QR Code Modal */}
       <div
         className="modal fade"
         id="qrModal"
@@ -220,16 +255,13 @@ function Dashboard({ token }) {
             <h5 className="fw-bold mb-3">
               <BsQrCode className="me-2" /> QR Code
             </h5>
-            {shortUrl && <QRCodeCanvas value={shortUrl} size={200} />}
+            {qrLink && <QRCodeCanvas value={qrLink} size={200} />}
             <p className="mt-3">
-              <a href={shortUrl} target="_blank" rel="noopener noreferrer">
-                {shortUrl}
+              <a href={qrLink} target="_blank" rel="noopener noreferrer">
+                {qrLink}
               </a>
             </p>
-            <button
-              className="btn btn-secondary mt-2"
-              data-bs-dismiss="modal"
-            >
+            <button className="btn btn-secondary mt-2" data-bs-dismiss="modal">
               <FaRegTimesCircle className="me-1" /> Close
             </button>
           </div>

@@ -177,3 +177,35 @@
     left: 1rem;
   }
 }
+/* ❌ Expired Links */
+.list-group-item.expired {
+  background: #fff0f0 !important;
+  border: 1px solid #f5c2c7 !important;
+  opacity: 0.85;
+}
+
+.list-group-item.expired .short-link {
+  color: #dc3545 !important; /* red */
+  text-decoration: line-through;
+  cursor: not-allowed;
+}
+
+.list-group-item.expired .badge {
+  background: #adb5bd !important; /* gray */
+}
+
+.list-group-item.expired:hover {
+  transform: none;
+  background: #fff0f0 !important;
+}
+
+/* "Expired" Label Styling */
+.expired-label {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #dc3545;
+  background: #ffe0e0;
+  padding: 3px 8px;
+  border-radius: 8px;
+  margin-left: 8px;
+}
