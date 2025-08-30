@@ -1,8 +1,24 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { FaLink } from "react-icons/fa";
+import { jwtDecode } from "jwt-decode";
 import "../styles/Navbar.css";
 
 function Navbar({ token, setPage, handleLogout }) {
+  const [username, setUsername] = useState("");
+
+  useEffect(() => {
+    if (token) {
+      try {
+        const decoded = jwtDecode(token);
+        setUsername(decoded.username || decoded.email || "User"); // depends on your backend payload
+      } catch (err) {
+        console.error("Invalid token", err);
+      }
+    } else {
+      setUsername("");
+    }
+  }, [token]);
+
   return (
     <nav className="navbar navbar-expand-lg premium-navbar px-4 py-2 sticky-top">
       <a
@@ -31,7 +47,7 @@ function Navbar({ token, setPage, handleLogout }) {
       </button>
 
       <div className="collapse navbar-collapse" id="navbarContent">
-        <div className="ms-auto d-flex align-items-center gap-2 flex-wrap">
+        <div className="ms-auto d-flex align-items-center gap-3 flex-wrap">
           {!token ? (
             <>
               <button
@@ -49,6 +65,9 @@ function Navbar({ token, setPage, handleLogout }) {
             </>
           ) : (
             <>
+              <span className="fw-semibold text-white">
+                👋 Hi, {username}
+              </span>
               <button
                 className="btn btn-nav-success"
                 onClick={() => setPage("dashboard")}

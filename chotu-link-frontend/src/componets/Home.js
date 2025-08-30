@@ -1,7 +1,10 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
-import { FaBolt, FaChartLine, FaQrcode, FaLock, FaShareAlt, FaPaste, FaLink, FaPaperPlane } from "react-icons/fa";
-import PremiumPopup from "./PremiumPopup"; // import popup
+import { 
+  FaBolt, FaChartLine, FaQrcode, FaLock, FaShareAlt, 
+  FaPaste, FaLink, FaPaperPlane 
+} from "react-icons/fa";
+import PremiumPopup from "./PremiumPopup"; 
 import "../styles/Home.css";
 
 function Home({ token, setPage }) {
@@ -13,21 +16,35 @@ function Home({ token, setPage }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const res = await axios.post("https://chotu-link.vercel.app/shorten", { url });
+      // ✅ If user is logged in, send request with token
+      const config = token
+        ? { headers: { Authorization: `Bearer ${token}` } }
+        : {};
+
+      const res = await axios.post(
+        "https://chotu-link.vercel.app/shorten",
+        { url },
+        config
+      );
+
       setShortUrl(res.data.shortUrl);
       setUrl("");
 
-      // Show premium popup if user not logged in
-      if (!token) {
+      // ✅ If free user hits limit → show premium popup
+      if (res.data.limitReached) {
         setShowPremiumPopup(true);
       }
 
+      // ✅ If guest (no token) → show popup after first shorten
+      if (!token) {
+        setShowPremiumPopup(true);
+      }
     } catch (err) {
       alert(err.response?.data?.error || "Shortening failed");
     }
   };
 
-  // ✅ Generate random floating URLs
+  // Floating random demo URLs
   useEffect(() => {
     const urls = [
       "https://Chotu.ly/abc123",
@@ -50,7 +67,7 @@ function Home({ token, setPage }) {
   return (
     <div>
       {/* Premium Popup */}
-      {showPremiumPopup && !token && (
+      {showPremiumPopup && (
         <PremiumPopup token={token} setPage={setPage} />
       )}
 
@@ -67,7 +84,7 @@ function Home({ token, setPage }) {
             </span>
           ))}
 
-          {/* Glowing particles */}
+          {/* Glow particles */}
           <span className="glow-particle" style={{ top: "30%", left: "20%", width: "6px", height: "6px" }}></span>
           <span className="glow-particle" style={{ top: "60%", left: "70%", width: "10px", height: "10px" }}></span>
           <span className="glow-particle" style={{ top: "40%", left: "50%", width: "8px", height: "8px" }}></span>
@@ -107,7 +124,7 @@ function Home({ token, setPage }) {
         </div>
       </section>
 
-      {/* ✅ Features Section */}
+      {/* Features Section */}
       <section className="py-5 bg-light">
         <div className="container">
           <h2 className="text-center mb-5 fw-bold text-gradient">✨ Our Features</h2>
@@ -150,8 +167,8 @@ function Home({ token, setPage }) {
           </div>
         </div>
       </section>
-      
-      {/* ✅ How It Works Section */}
+
+      {/* How It Works Section */}
       <section className="py-5">
         <div className="container">
           <h2 className="text-center mb-5 fw-bold text-gradient">⚡ How It Works</h2>
@@ -180,7 +197,6 @@ function Home({ token, setPage }) {
           </div>
         </div>
       </section>
-    
     </div>
   );
 }

@@ -1,4 +1,4 @@
-require('dotenv').config(); 
+require('dotenv').config();
 const express = require('express');
 const pool = require('./Databases/db');
 const { nanoid } = require('nanoid');
@@ -10,7 +10,7 @@ const app = express();
 app.use(express.json());
 app.use(cors());
 
-const JWT_SECRET = process.env.JWT_SECRET || "fallback_secret_key"; // ⚠️ Use .env in production
+const JWT_SECRET = process.env.JWT_SECRET;
 
 // ------------------- Middleware -------------------
 const authMiddleware = async (req, res, next) => {
@@ -64,7 +64,11 @@ app.post("/login", async (req, res) => {
     const match = await bcrypt.compare(password, user.password_hash);
     if (!match) return res.status(400).json({ error: "Wrong password" });
 
-    const token = jwt.sign({ id: user.id, email: user.email }, JWT_SECRET, { expiresIn: "7d" });
+    const token = jwt.sign(
+      { id: user.id, email: user.email, username: user.username },
+      JWT_SECRET,
+      { expiresIn: "7d" }
+    );
 
     res.json({ token, user: { id: user.id, username: user.username, email: user.email } });
   } catch (err) {
@@ -77,12 +81,10 @@ app.post("/login", async (req, res) => {
 
 // Shorten URL (authenticated or guest)
 app.post('/shorten', async (req, res) => {
-  const { url } = req.body;
+  const { url, expiryMinutes } = req.body;
   if (!url) return res.status(400).json({ error: 'URL required' });
 
-  const shortCode = nanoid(6);
-  const baseUrl = "https://chotu-link.vercel.app"; // Your frontend domain
-  const shortUrl = `${baseUrl}/${shortCode}`;
+  const baseUrl = "https://chotu-link.vercel.app"; // frontend domain
 
   // Check if user is authenticated
   let userId = null;
@@ -91,31 +93,48 @@ app.post('/shorten', async (req, res) => {
     try {
       const token = authHeader.split(" ")[1];
       const decoded = jwt.verify(token, JWT_SECRET);
-      userId = decoded.id; // store user id if logged in
+      userId = decoded.id;
     } catch (err) {
-      // Token invalid, treat as guest
       userId = null;
     }
   }
 
+  // Guests → just return temp link, don’t save
+  if (!userId) {
+    const shortUrl = `${baseUrl}/${nanoid(6)}`;
+    return res.json({ shortUrl, note: "Guest links are temporary (not stored)" });
+  }
+
   try {
-    // Store link in DB, user_id can be null for guests
+    let shortCode;
+
+    // Ensure unique short code
+    while (true) {
+      shortCode = nanoid(6);
+      const [rows] = await pool.query("SELECT id FROM links WHERE short_code = ?", [shortCode]);
+      if (rows.length === 0) break;
+    }
+
+    const shortUrl = `${baseUrl}/${shortCode}`;
+    const expiresAt = new Date(Date.now() + (expiryMinutes || 10080) * 60000); // default 7 days
+
     await pool.query(
-      "INSERT INTO links (short_code, short_url, original_url, user_id) VALUES (?, ?, ?, ?)",
-      [shortCode, shortUrl, url, userId]
+      "INSERT INTO links (short_code, short_url, original_url, user_id, expires_at) VALUES (?, ?, ?, ?, ?)",
+      [shortCode, shortUrl, url, userId, expiresAt]
     );
 
-    res.json({ shortUrl });
+    res.json({ shortUrl, expiresAt });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'DB error' });
   }
 });
 
+// Fetch user links
 app.get("/mylinks", authMiddleware, async (req, res) => {
   try {
     const [links] = await pool.query(
-      "SELECT short_code, short_url, original_url, click_count, created_at FROM links WHERE user_id = ? ORDER BY created_at DESC",
+      "SELECT short_code, short_url, original_url, click_count, created_at, expires_at FROM links WHERE user_id = ? ORDER BY created_at DESC",
       [req.user.id]
     );
     res.json({ links });
@@ -125,8 +144,7 @@ app.get("/mylinks", authMiddleware, async (req, res) => {
   }
 });
 
-
-// Get live click count for a single link
+// Get live click count
 app.get("/clicks/:code", async (req, res) => {
   const { code } = req.params;
 
@@ -145,17 +163,21 @@ app.get("/clicks/:code", async (req, res) => {
   }
 });
 
-// Redirect + update click count
+// Redirect + check expiry + update clicks
 app.get('/:code', async (req, res) => {
   const { code } = req.params;
 
   try {
     const [rows] = await pool.query(
-      "SELECT original_url FROM links WHERE short_code = ?",
+      "SELECT original_url, expires_at FROM links WHERE short_code = ?",
       [code]
     );
 
     if (rows.length === 0) return res.status(404).send("Link not found");
+
+    if (rows[0].expires_at && new Date(rows[0].expires_at) < new Date()) {
+      return res.status(410).send("Link expired");
+    }
 
     await pool.query(
       "UPDATE links SET click_count = click_count + 1 WHERE short_code = ?",

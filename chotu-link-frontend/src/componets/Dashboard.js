@@ -3,14 +3,16 @@ import axios from "axios";
 // ✅ QR Code
 import { QRCodeCanvas } from "qrcode.react";
 // ✅ Icons
-import { BsLink45Deg, BsQrCode, BsClipboard, BsFolder2Open } from "react-icons/bs";
+import { BsLink45Deg, BsQrCode, BsClipboard, BsFolder2Open, BsClock } from "react-icons/bs";
 import { FaRegTimesCircle } from "react-icons/fa";
 
 import "../styles/Dashboard.css";
 
 function Dashboard({ token }) {
   const [url, setUrl] = useState("");
+  const [expiryMinutes, setExpiryMinutes] = useState(""); // ⏳ expiry input
   const [shortUrl, setShortUrl] = useState("");
+  const [expiresAt, setExpiresAt] = useState("");
   const [links, setLinks] = useState([]);
   const [toastMessage, setToastMessage] = useState("");
   const [showToast, setShowToast] = useState(false);
@@ -23,6 +25,7 @@ function Dashboard({ token }) {
   };
 
   const fetchLinks = async () => {
+    if (!token) return; // guests skip
     try {
       setLoading(true);
       const res = await axios.get("https://chotu-link.vercel.app/mylinks", {
@@ -49,12 +52,16 @@ function Dashboard({ token }) {
     try {
       const res = await axios.post(
         "https://chotu-link.vercel.app/shorten",
-        { url },
-        { headers: { Authorization: `Bearer ${token}` } }
+        { url, expiryMinutes: expiryMinutes || undefined },
+        { headers: token ? { Authorization: `Bearer ${token}` } : {} }
       );
+
       setShortUrl(res.data.shortUrl);
+      setExpiresAt(res.data.expiresAt || "");
       setUrl("");
-      fetchLinks();
+      setExpiryMinutes("");
+
+      if (token) fetchLinks(); // refresh list only for logged in users
     } catch (err) {
       if (err.response?.status === 401) {
         handleTokenExpiry();
@@ -78,7 +85,7 @@ function Dashboard({ token }) {
         <h2 className="mb-3 fw-bold text-gradient">
           <BsLink45Deg className="me-2" /> Shorten Your URL
         </h2>
-        <form onSubmit={handleSubmit} className="d-flex gap-2">
+        <form onSubmit={handleSubmit} className="d-flex gap-2 flex-wrap">
           <input
             type="url"
             placeholder="Paste your long URL..."
@@ -87,20 +94,37 @@ function Dashboard({ token }) {
             className="form-control rounded-pill"
             required
           />
+          {token && (
+            <input
+              type="number"
+              min="1"
+              placeholder="Expiry (minutes, optional)"
+              value={expiryMinutes}
+              onChange={(e) => setExpiryMinutes(e.target.value)}
+              className="form-control rounded-pill"
+              style={{ maxWidth: "200px" }}
+            />
+          )}
           <button type="submit" className="btn btn-premium rounded-pill px-4">
             Shorten
           </button>
         </form>
 
         {shortUrl && (
-          <div className="alert alert-success mt-4 d-flex justify-content-between align-items-center">
+          <div className="alert alert-success mt-4 d-flex justify-content-between align-items-center flex-wrap">
             <div>
               Your short link:{" "}
               <a href={shortUrl} target="_blank" rel="noopener noreferrer">
                 {shortUrl}
               </a>
+              {expiresAt && (
+                <div className="small text-muted mt-1">
+                  <BsClock className="me-1" /> Expires at:{" "}
+                  {new Date(expiresAt).toLocaleString()}
+                </div>
+              )}
             </div>
-            <div className="d-flex gap-2">
+            <div className="d-flex gap-2 mt-2 mt-md-0">
               <button
                 className="btn btn-sm btn-outline-light rounded-pill"
                 onClick={() => copyToClipboard(shortUrl)}
@@ -119,62 +143,70 @@ function Dashboard({ token }) {
         )}
       </div>
 
-      {/* Links List */}
-      <div className="mt-5">
-        <h3 className="fw-bold mb-3">
-          <BsFolder2Open className="me-2" /> Your Links
-        </h3>
+      {/* Links List (only for logged in users) */}
+      {token && (
+        <div className="mt-5">
+          <h3 className="fw-bold mb-3">
+            <BsFolder2Open className="me-2" /> Your Links
+          </h3>
 
-        {loading ? (
-          <div className="loading-spinner"></div>
-        ) : links.length === 0 ? (
-          <p className="text-muted">No links yet. Start shortening!</p>
-        ) : (
-          <ul className="list-group premium-list">
-            {links.map((link) => {
-              const shortLink = `${link.short_url}`;
-              return (
-                <li
-                  key={link.short_code}
-                  className="list-group-item d-flex justify-content-between align-items-center"
-                >
-                  <div>
-                    <a
-                      href={shortLink}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="fw-semibold text-decoration-none short-link"
-                    >
-                      {shortLink}
-                    </a>
-                    <br />
-                    <small className="text-muted">{link.original_url}</small>
-                  </div>
-                  <div className="d-flex align-items-center gap-2">
-                    <span className="badge bg-primary rounded-pill">
-                      {link.click_count} clicks
-                    </span>
-                    <button
-                      className="btn btn-sm btn-outline-primary rounded-pill"
-                      onClick={() => copyToClipboard(shortLink)}
-                    >
-                      <BsClipboard /> Copy
-                    </button>
-                    <button
-                      className="btn btn-sm btn-outline-dark rounded-pill"
-                      data-bs-toggle="modal"
-                      data-bs-target="#qrModal"
-                      onClick={() => setShortUrl(shortLink)}
-                    >
-                      <BsQrCode /> QR
-                    </button>
-                  </div>
-                </li>
-              );
-            })}
-          </ul>
-        )}
-      </div>
+          {loading ? (
+            <div className="loading-spinner"></div>
+          ) : links.length === 0 ? (
+            <p className="text-muted">No links yet. Start shortening!</p>
+          ) : (
+            <ul className="list-group premium-list">
+              {links.map((link) => {
+                const shortLink = `${link.short_url}`;
+                return (
+                  <li
+                    key={link.short_code}
+                    className="list-group-item d-flex justify-content-between align-items-center flex-wrap"
+                  >
+                    <div>
+                      <a
+                        href={shortLink}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="fw-semibold text-decoration-none short-link"
+                      >
+                        {shortLink}
+                      </a>
+                      <br />
+                      <small className="text-muted">{link.original_url}</small>
+                      {link.expires_at && (
+                        <div className="small text-danger mt-1">
+                          <BsClock className="me-1" /> Expires at:{" "}
+                          {new Date(link.expires_at).toLocaleString()}
+                        </div>
+                      )}
+                    </div>
+                    <div className="d-flex align-items-center gap-2 mt-2 mt-md-0">
+                      <span className="badge bg-primary rounded-pill">
+                        {link.click_count} clicks
+                      </span>
+                      <button
+                        className="btn btn-sm btn-outline-primary rounded-pill"
+                        onClick={() => copyToClipboard(shortLink)}
+                      >
+                        <BsClipboard /> Copy
+                      </button>
+                      <button
+                        className="btn btn-sm btn-outline-dark rounded-pill"
+                        data-bs-toggle="modal"
+                        data-bs-target="#qrModal"
+                        onClick={() => setShortUrl(shortLink)}
+                      >
+                        <BsQrCode /> QR
+                      </button>
+                    </div>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+        </div>
+      )}
 
       {/* ✅ QR Code Modal */}
       <div
